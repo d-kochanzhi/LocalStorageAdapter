@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="dist/LocalStorageAdapter.js" type="text/javascript"></script>
+    <script type="text/javascript">
+
+        //new instance
+        var storage = new LocalStorageAdapter();
+
+        //set value
+        storage.set('key_no_cache', 'test');
+
+        //get value
+        storage.get('key_no_cache');
+
+        /*
+        get value with cache
+        key = mykey
+        time = 1000 milliseconds cache life time
+        callback = function/Promise
+        */
+        callback = function () {
+            return "hello from callback";
+        }
+        var data = storage.tryGet('with_cache_callback', 3000, callback)
+        console.log(data);
+
+
+        var promise = new Promise(function (resolve, reject) {
+            setTimeout(() => {
+                resolve("hello from promise");
+            }, 1000);
+        });
+        storage.tryGet('with_cache_promise', 3000, promise)
+            .then((data) => {
+                console.log(data);
+            });
+
+
+
+        //storage.clear();
+    </script>
+</head>
+
+<body>
+
+</body>
+
+</html>
+
+</html>
