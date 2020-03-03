@@ -17,7 +17,7 @@ key = my key
 maxage = 1000 milliseconds cache life time
 callback = function/Promise
 */
-callback = function () {
+var callback = function () {
     return "hello from callback";
 }
 var data = storage.tryGet('with_cache_callback', 3000, callback)
