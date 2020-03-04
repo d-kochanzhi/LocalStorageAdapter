@@ -1,22 +1,6 @@
 var LocalStorageAdapter = (function () {
   'use strict';
 
-  function _typeof(obj) {
-    "@babel/helpers - typeof";
-
-    if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
-      _typeof = function (obj) {
-        return typeof obj;
-      };
-    } else {
-      _typeof = function (obj) {
-        return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-      };
-    }
-
-    return _typeof(obj);
-  }
-
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
@@ -91,45 +75,85 @@ var LocalStorageAdapter = (function () {
           if (key.startsWith(this._prefix)) this._storage.removeItem(key);
         }
       }
+      /**
+       * Get cached value
+       * @param {string} key
+       * @param {integer} maxage in milliseconds
+       * @param {function} callback
+       * @returns {object} value
+       */
+
     }, {
       key: "tryGet",
       value: function tryGet(key, maxage, callback) {
-        var _this = this;
-
         var self = this;
         if (!key) throw "No Key Defined";
         if (!callback) throw "No Callback Defined";
         if (!maxage) maxage = 10000;
 
-        if (typeof callback === "function") {
-          var value = this._get(key);
+        var value = this._get(key);
 
-          if (!value) {
-            return this.set(key, callback());
-          } else {
-            var milliOffset = Date.now() - new Date(value.stamp);
+        var callbackResolver = function callbackResolver() {
+          return self.set(key, callback());
+        };
 
-            if (maxage < milliOffset) {
-              return this.set(key, callback());
-            } else return value.value;
-          }
-        } else if (_typeof(callback) === "object" && callback.toString() === "[object Promise]") {
-          return new Promise(function (resolve, reject) {
-            var value = _this._get(key);
+        if (!value) {
+          return callbackResolver();
+        } else {
+          var milliOffset = Date.now() - new Date(value.stamp);
 
-            if (!value) {
-              promise.then(function (result) {
+          if (maxage < milliOffset) {
+            return callbackResolver();
+          } else return value.value;
+        }
+      }
+      /**
+       * Get cached value Async
+       * @param {string} key
+       * @param {integer} maxage in milliseconds
+       * @param {function/promise} callback
+       * @returns {object} Promise
+       */
+
+    }, {
+      key: "tryGetAsync",
+      value: function tryGetAsync(key, maxage, callback) {
+        var self = this;
+        if (!key) throw "No Key Defined";
+        if (!callback) throw "No Callback Defined";
+        if (!maxage) maxage = 10000;
+
+        var value = this._get(key);
+
+        var callbackResolver = function callbackResolver() {
+          var callbackResult;
+
+          if (typeof callback === "function") {
+            callbackResult = callback();
+          } else callbackResult = callback;
+
+          if (callbackResult.toString() === "[object Promise]") {
+            return new Promise(function (resolve, reject) {
+              callbackResult.then(function (result) {
                 resolve(self.set(key, result));
               });
-            } else {
-              var milliOffset = Date.now() - new Date(value.stamp);
+            });
+          } else {
+            return new Promise(function (resolve, reject) {
+              resolve(self.set(key, callbackResult));
+            });
+          }
+        };
 
-              if (maxage < milliOffset) {
-                promise.then(function (result) {
-                  resolve(self.set(key, result));
-                });
-              } else resolve(value.value);
-            }
+        if (!value) {
+          return callbackResolver();
+        } else {
+          var milliOffset = Date.now() - new Date(value.stamp);
+
+          if (maxage < milliOffset) {
+            return callbackResolver();
+          } else return new Promise(function (resolve, reject) {
+            resolve(value.value);
           });
         }
       }
