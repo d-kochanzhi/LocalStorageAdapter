@@ -132,7 +132,7 @@ var LocalStorageAdapter = (function () {
             callbackResult = callback();
           } else callbackResult = callback;
 
-          if (callbackResult.toString() === "[object Promise]") {
+          if (callbackResult.toString() === "[object Promise]" || callbackResult.__proto__.hasOwnProperty('then')) {
             return new Promise(function (resolve, reject) {
               callbackResult.then(function (result) {
                 resolve(self.set(key, result));
