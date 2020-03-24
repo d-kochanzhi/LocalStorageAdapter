@@ -123,7 +123,7 @@ var LocalStorageAdapter = (function () {
         if (!callback) throw "No Callback Defined";
         if (!maxage) maxage = 10000;
 
-        var value = this._get(key);
+        var storedValue = this._get(key);
 
         var callbackResolver = function callbackResolver() {
           var callbackResult;
@@ -145,15 +145,15 @@ var LocalStorageAdapter = (function () {
           }
         };
 
-        if (!value) {
+        if (!storedValue || !storedValue.value) {
           return callbackResolver();
         } else {
-          var milliOffset = Date.now() - new Date(value.stamp);
+          var milliOffset = Date.now() - new Date(storedValue.stamp);
 
           if (maxage < milliOffset) {
             return callbackResolver();
           } else return new Promise(function (resolve, reject) {
-            resolve(value.value);
+            resolve(storedValue.value);
           });
         }
       }
