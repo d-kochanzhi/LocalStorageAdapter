@@ -77,9 +77,9 @@ var LocalStorageAdapter = (function () {
       }
       /**
        * Get cached value
-       * @param {string} key
+       * @param {string} key key string
        * @param {integer} maxage in milliseconds
-       * @param {function} callback
+       * @param {function} callback function
        * @returns {object} value
        */
 
@@ -109,9 +109,9 @@ var LocalStorageAdapter = (function () {
       }
       /**
        * Get cached value Async
-       * @param {string} key
+       * @param {string} key key string
        * @param {integer} maxage in milliseconds
-       * @param {function/promise} callback
+       * @param {function/promise} callback function
        * @returns {object} Promise
        */
 
@@ -123,7 +123,7 @@ var LocalStorageAdapter = (function () {
         if (!callback) throw "No Callback Defined";
         if (!maxage) maxage = 10000;
 
-        var storedValue = this._get(key);
+        var storageValue = this._get(key);
 
         var callbackResolver = function callbackResolver() {
           var callbackResult;
@@ -135,7 +135,9 @@ var LocalStorageAdapter = (function () {
           if (callbackResult.toString() === "[object Promise]" || callbackResult.__proto__.hasOwnProperty('then')) {
             return new Promise(function (resolve, reject) {
               callbackResult.then(function (result) {
-                resolve(self.set(key, result));
+                return resolve(self.set(key, result));
+              })["catch"](function (err) {
+                return reject(err);
               });
             });
           } else {
@@ -145,15 +147,15 @@ var LocalStorageAdapter = (function () {
           }
         };
 
-        if (!storedValue || !storedValue.value) {
+        if (!storageValue || !storageValue.value) {
           return callbackResolver();
         } else {
-          var milliOffset = Date.now() - new Date(storedValue.stamp);
+          var milliOffset = Date.now() - new Date(storageValue.stamp);
 
           if (maxage < milliOffset) {
             return callbackResolver();
           } else return new Promise(function (resolve, reject) {
-            resolve(storedValue.value);
+            resolve(storageValue.value);
           });
         }
       }
