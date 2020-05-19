@@ -8,7 +8,6 @@
     <title>Document</title>
     <script src="dist/LocalStorageAdapter.js" type="text/javascript"></script>
     <script type="text/javascript">
-
         //new instance
         var storage = new LocalStorageAdapter();
 
@@ -29,7 +28,7 @@
             return "hello from callback";
         }
         var data = storage.tryGet('key1', 5000, callback)
-        console.log(`[tryGet]key1 = {data}`);
+        console.log(`[tryGet]key1 = ${data}`);
 
         /*********************************
         get value with cache
@@ -43,7 +42,7 @@
         }
         storage.tryGetAsync('key2', 5000, callback)
             .then((data) => {
-                console.log(`[tryGetAsync+callback]key2 = {data}`);
+                console.log(`[tryGetAsync+callback]key2 = ${data}`);
             });
 
         /*********************************
@@ -60,7 +59,7 @@
         });
         storage.tryGetAsync('key3', 5000, promise)
             .then((data) => {
-                console.log(`[tryGetAsync+promise]key3 = {data}`);
+                console.log(`[tryGetAsync+promise]key3 = ${data}`);
             });
 
         /*********************************
@@ -75,7 +74,7 @@
         };
         storage.tryGetAsync('key4', 5000, functionWithPromise)
             .then((data) => {
-                console.log(`[tryGetAsync+function+promise]key4 = {data}`);
+                console.log(`[tryGetAsync+function+promise]key4 = ${data}`);
             });
 
         //storage.clear();

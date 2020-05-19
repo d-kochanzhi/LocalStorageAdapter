@@ -1,11 +1,18 @@
+/* eslint-disable class-methods-use-this */
+/* eslint-disable func-names */
+/* eslint-disable no-plusplus */
+/* eslint-disable no-param-reassign */
+/* eslint-disable no-underscore-dangle */
 export default class LocalStorageJs {
-  constructor(prefix) {
-    if (!window.localStorage) throw 'No window.localStorage Defined';
+  constructor(options = {}) {
+    if (!window.localStorage) throw new Error('No window.localStorage Defined');
 
-    if (prefix) this._prefix = prefix;
-    else this._prefix = 'pre_';
+    this.options = {
+      prefix: 'pre_',
+      ...options,
+    };
 
-    this._storage = window.localStorage;
+    this.storage = window.localStorage;
   }
 
   _prepareValue(value) {
@@ -16,11 +23,11 @@ export default class LocalStorageJs {
   }
 
   _prepareKey(key) {
-    return this._prefix + key;
+    return this.options.prefix + key;
   }
 
   _get(key) {
-    return JSON.parse(this._storage.getItem(this._prepareKey(key)));
+    return JSON.parse(this.storage.getItem(this._prepareKey(key)));
   }
 
   get(key) {
@@ -30,16 +37,16 @@ export default class LocalStorageJs {
   }
 
   set(key, value) {
-    if (!value) this._storage.removeItem(key);
+    if (!value) this.storage.removeItem(key);
 
-    this._storage.setItem(this._prepareKey(key), JSON.stringify(this._prepareValue(value)));
+    this.storage.setItem(this._prepareKey(key), JSON.stringify(this._prepareValue(value)));
     return value;
   }
 
   clear() {
-    for (let i = 0; i < this._storage.length; i++) {
-      const key = this._storage.key(i);
-      if (key.startsWith(this._prefix)) this._storage.removeItem(key);
+    for (let i = 0; i < this.storage.length; i++) {
+      const key = this.storage.key(i);
+      if (key.startsWith(this.options.prefix)) this.storage.removeItem(key);
     }
   }
 
@@ -52,13 +59,13 @@ export default class LocalStorageJs {
    */
   tryGet(key, maxage, callback) {
     const self = this;
-    if (!key) throw 'No Key Defined';
-    if (!callback) throw 'No Callback Defined';
+    if (!key) throw new Error('No Key Defined');
+    if (!callback) throw new Error('No Callback Defined');
     if (!maxage) maxage = 10000;
 
     const value = this._get(key);
 
-    const callbackResolver = function () {
+    const callbackResolver = function callbackResolver() {
       return self.set(key, callback());
     };
 
@@ -82,13 +89,13 @@ export default class LocalStorageJs {
    */
   tryGetAsync(key, maxage, callback) {
     const self = this;
-    if (!key) throw 'No Key Defined';
-    if (!callback) throw 'No Callback Defined';
+    if (!key) throw new Error('No Key Defined');
+    if (!callback) throw new Error('No Callback Defined');
     if (!maxage) maxage = 10000;
 
     const storageValue = this._get(key);
 
-    const callbackResolver = function () {
+    const callbackResolver = function callbackResolver() {
       let callbackResult;
       if (typeof callback === 'function') {
         callbackResult = callback();
@@ -96,7 +103,7 @@ export default class LocalStorageJs {
 
       if (
         callbackResult.toString() === '[object Promise]' ||
-        callbackResult.__proto__.hasOwnProperty('then')
+        Object.prototype.hasOwnProperty.call(callbackResult, 'then')
       ) {
         return new Promise(function (resolve, reject) {
           callbackResult
@@ -104,7 +111,7 @@ export default class LocalStorageJs {
             .catch((err) => reject(err));
         });
       }
-      return new Promise(function (resolve, reject) {
+      return new Promise(function (resolve) {
         resolve(self.set(key, callbackResult));
       });
     };
@@ -117,7 +124,7 @@ export default class LocalStorageJs {
     if (maxage < milliOffset) {
       return callbackResolver();
     }
-    return new Promise(function (resolve, reject) {
+    return new Promise(function (resolve) {
       resolve(storageValue.value);
     });
   }
